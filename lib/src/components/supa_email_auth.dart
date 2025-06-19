@@ -220,6 +220,12 @@ class SupaEmailAuth extends StatefulWidget {
   /// Whether the confirm password field should be displayed
   final bool showConfirmPasswordField;
 
+  /// Pre-filled email for the form
+  final String? prefilledEmail;
+
+  /// Pre-filled password for the form
+  final String? prefilledPassword;
+
   /// {@macro supa_email_auth}
   const SupaEmailAuth({
     super.key,
@@ -240,6 +246,8 @@ class SupaEmailAuth extends StatefulWidget {
     this.prefixIconEmail = const Icon(Icons.email),
     this.prefixIconPassword = const Icon(Icons.lock),
     this.showConfirmPasswordField = false,
+    this.prefilledEmail,
+    this.prefilledPassword,
   });
 
   @override
@@ -265,6 +273,8 @@ class _SupaEmailAuthState extends State<SupaEmailAuth> {
   @override
   void initState() {
     super.initState();
+    _emailController.text = widget.prefilledEmail ?? '';
+    _passwordController.text = widget.prefilledPassword ?? '';
     _isSigningIn = widget.isInitiallySigningIn;
     _metadataControllers = Map.fromEntries((widget.metadataFields ?? []).map(
       (metadataField) => MapEntry(
