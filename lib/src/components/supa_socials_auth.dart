@@ -77,10 +77,7 @@ class NativeGoogleAuthConfig {
   /// Required to perform native Google Sign In on iOS
   final String? iosClientId;
 
-  const NativeGoogleAuthConfig({
-    this.webClientId,
-    this.iosClientId,
-  });
+  const NativeGoogleAuthConfig({this.webClientId, this.iosClientId});
 }
 
 /// UI Component to create social login form
@@ -170,11 +167,13 @@ class _SupaSocialsAuthState extends State<SupaSocialsAuth> {
 
     if (accessToken == null) {
       throw const AuthException(
-          'No Access Token found from Google sign in result.');
+        'No Access Token found from Google sign in result.',
+      );
     }
     if (idToken == null) {
       throw const AuthException(
-          'No ID Token found from Google sign in result.');
+        'No ID Token found from Google sign in result.',
+      );
     }
 
     return supabase.auth.signInWithIdToken(
@@ -200,7 +199,8 @@ class _SupaSocialsAuthState extends State<SupaSocialsAuth> {
     final idToken = credential.identityToken;
     if (idToken == null) {
       throw const AuthException(
-          'Could not find ID Token from generated Apple sign in credential.');
+        'Could not find ID Token from generated Apple sign in credential.',
+      );
     }
 
     return supabase.auth.signInWithIdToken(
@@ -243,176 +243,168 @@ class _SupaSocialsAuthState extends State<SupaSocialsAuth> {
       return ErrorWidget(Exception('Social provider list cannot be empty'));
     }
 
-    final authButtons = List.generate(
-      providers.length,
-      (index) {
-        final socialProvider = providers[index];
+    final authButtons = List.generate(providers.length, (index) {
+      final socialProvider = providers[index];
 
-        Color? foregroundColor = coloredBg ? Colors.white : null;
-        Color? backgroundColor = coloredBg ? socialProvider.btnBgColor : null;
-        Color? overlayColor = coloredBg ? Colors.white10 : null;
+      Color? foregroundColor = coloredBg ? Colors.white : null;
+      Color? backgroundColor = coloredBg ? socialProvider.btnBgColor : null;
+      Color? overlayColor = coloredBg ? Colors.white10 : null;
 
-        Color? iconColor = coloredBg ? Colors.white : null;
+      Color? iconColor = coloredBg ? Colors.white : null;
 
-        Widget iconWidget = SizedBox(
-          height: 48,
+      Widget iconWidget = SizedBox(
+        height: 48,
+        width: 48,
+        child: Icon(socialProvider.iconData, color: iconColor),
+      );
+      if (socialProvider == OAuthProvider.google && coloredBg) {
+        iconWidget = Image.asset(
+          'assets/logos/google_light.png',
+          package: 'supabase_auth_ui',
           width: 48,
-          child: Icon(
-            socialProvider.iconData,
-            color: iconColor,
-          ),
+          height: 48,
         );
-        if (socialProvider == OAuthProvider.google && coloredBg) {
+        foregroundColor = Colors.black;
+        backgroundColor = Colors.white;
+        overlayColor = Colors.white;
+      }
+
+      switch (socialProvider) {
+        case OAuthProvider.notion:
           iconWidget = Image.asset(
-            'assets/logos/google_light.png',
+            'assets/logos/notion.png',
             package: 'supabase_auth_ui',
             width: 48,
             height: 48,
           );
-          foregroundColor = Colors.black;
-          backgroundColor = Colors.white;
-          overlayColor = Colors.white;
-        }
+          break;
+        case OAuthProvider.kakao:
+          iconWidget = Image.asset(
+            'assets/logos/kakao.png',
+            package: 'supabase_auth_ui',
+            width: 48,
+            height: 48,
+          );
+          break;
+        case OAuthProvider.keycloak:
+          iconWidget = Image.asset(
+            'assets/logos/keycloak.png',
+            package: 'supabase_auth_ui',
+            width: 48,
+            height: 48,
+          );
+          break;
+        case OAuthProvider.workos:
+          iconWidget = Image.asset(
+            'assets/logos/workOS.png',
+            package: 'supabase_auth_ui',
+            color: coloredBg ? Colors.white : null,
+            width: 48,
+            height: 48,
+          );
+          break;
+        default:
+          break;
+      }
 
-        switch (socialProvider) {
-          case OAuthProvider.notion:
-            iconWidget = Image.asset(
-              'assets/logos/notion.png',
-              package: 'supabase_auth_ui',
-              width: 48,
-              height: 48,
-            );
-            break;
-          case OAuthProvider.kakao:
-            iconWidget = Image.asset(
-              'assets/logos/kakao.png',
-              package: 'supabase_auth_ui',
-              width: 48,
-              height: 48,
-            );
-            break;
-          case OAuthProvider.keycloak:
-            iconWidget = Image.asset(
-              'assets/logos/keycloak.png',
-              package: 'supabase_auth_ui',
-              width: 48,
-              height: 48,
-            );
-            break;
-          case OAuthProvider.workos:
-            iconWidget = Image.asset(
-              'assets/logos/workOS.png',
-              package: 'supabase_auth_ui',
-              color: coloredBg ? Colors.white : null,
-              width: 48,
-              height: 48,
-            );
-            break;
-          default:
-            break;
-        }
-
-        onAuthButtonPressed() async {
-          try {
-            // Check if native Google login should be performed
-            if (socialProvider == OAuthProvider.google) {
-              final webClientId = googleAuthConfig?.webClientId;
-              final iosClientId = googleAuthConfig?.iosClientId;
-              final shouldPerformNativeGoogleSignIn =
-                  (webClientId != null && !kIsWeb && Platform.isAndroid) ||
-                      (iosClientId != null && !kIsWeb && Platform.isIOS);
-              if (shouldPerformNativeGoogleSignIn) {
-                await _nativeGoogleSignIn(
-                  webClientId: webClientId,
-                  iosClientId: iosClientId,
-                );
-                return;
-              }
-            }
-
-            // Check if native Apple login should be performed
-            if (socialProvider == OAuthProvider.apple) {
-              final shouldPerformNativeAppleSignIn =
-                  (isNativeAppleAuthEnabled && !kIsWeb && Platform.isIOS) ||
-                      (isNativeAppleAuthEnabled && !kIsWeb && Platform.isMacOS);
-              if (shouldPerformNativeAppleSignIn) {
-                await _nativeAppleSignIn();
-                return;
-              }
-            }
-
-            final user = supabase.auth.currentUser;
-            if (user?.isAnonymous == true) {
-              await supabase.auth.linkIdentity(
-                socialProvider,
-                redirectTo: widget.redirectUrl,
-                scopes: widget.scopes?[socialProvider],
-                queryParams: widget.queryParams?[socialProvider],
+      onAuthButtonPressed() async {
+        try {
+          // Check if native Google login should be performed
+          if (socialProvider == OAuthProvider.google) {
+            final webClientId = googleAuthConfig?.webClientId;
+            final iosClientId = googleAuthConfig?.iosClientId;
+            final shouldPerformNativeGoogleSignIn =
+                (webClientId != null && !kIsWeb && Platform.isAndroid) ||
+                    (iosClientId != null && !kIsWeb && Platform.isIOS);
+            if (shouldPerformNativeGoogleSignIn) {
+              await _nativeGoogleSignIn(
+                webClientId: webClientId,
+                iosClientId: iosClientId,
               );
               return;
             }
+          }
 
-            await supabase.auth.signInWithOAuth(
+          // Check if native Apple login should be performed
+          if (socialProvider == OAuthProvider.apple) {
+            final shouldPerformNativeAppleSignIn =
+                (isNativeAppleAuthEnabled && !kIsWeb && Platform.isIOS) ||
+                    (isNativeAppleAuthEnabled && !kIsWeb && Platform.isMacOS);
+            if (shouldPerformNativeAppleSignIn) {
+              await _nativeAppleSignIn();
+              return;
+            }
+          }
+
+          final user = supabase.auth.currentUser;
+          if (user?.isAnonymous == true) {
+            await supabase.auth.linkIdentity(
               socialProvider,
               redirectTo: widget.redirectUrl,
               scopes: widget.scopes?[socialProvider],
               queryParams: widget.queryParams?[socialProvider],
-              authScreenLaunchMode: widget.authScreenLaunchMode,
             );
-          } on AuthException catch (error) {
-            if (widget.onError == null && context.mounted) {
-              context.showErrorSnackBar(error.message);
-            } else {
-              widget.onError?.call(error);
-            }
-          } catch (error) {
-            if (widget.onError == null && context.mounted) {
-              context
-                  .showErrorSnackBar('${localization.unexpectedError}: $error');
-            } else {
-              widget.onError?.call(error);
-            }
+            return;
+          }
+
+          await supabase.auth.signInWithOAuth(
+            socialProvider,
+            redirectTo: widget.redirectUrl,
+            scopes: widget.scopes?[socialProvider],
+            queryParams: widget.queryParams?[socialProvider],
+            authScreenLaunchMode: widget.authScreenLaunchMode,
+          );
+        } on AuthException catch (error) {
+          if (widget.onError == null && context.mounted) {
+            context.showErrorSnackBar(error.message);
+          } else {
+            widget.onError?.call(error);
+          }
+        } catch (error) {
+          if (widget.onError == null && context.mounted) {
+            context.showErrorSnackBar(
+              '${localization.unexpectedError}: $error',
+            );
+          } else {
+            widget.onError?.call(error);
           }
         }
+      }
 
-        final authButtonStyle = ButtonStyle(
-          foregroundColor: WidgetStateProperty.all(foregroundColor),
-          backgroundColor: WidgetStateProperty.all(backgroundColor),
-          overlayColor: WidgetStateProperty.all(overlayColor),
-          iconColor: WidgetStateProperty.all(iconColor),
-        );
+      final authButtonStyle = ButtonStyle(
+        foregroundColor: WidgetStateProperty.all(foregroundColor),
+        backgroundColor: WidgetStateProperty.all(backgroundColor),
+        overlayColor: WidgetStateProperty.all(overlayColor),
+        iconColor: WidgetStateProperty.all(iconColor),
+      );
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-          child: widget.socialButtonVariant == SocialButtonVariant.icon
-              ? Material(
-                  shape: const CircleBorder(),
-                  elevation: 2,
-                  color: backgroundColor,
-                  child: InkResponse(
-                    radius: 24,
-                    onTap: onAuthButtonPressed,
-                    child: iconWidget,
-                  ),
-                )
-              : ElevatedButton.icon(
-                  icon: iconWidget,
-                  style: authButtonStyle,
-                  onPressed: onAuthButtonPressed,
-                  label: Text(
-                    localization.oAuthButtonLabels[socialProvider] ??
-                        socialProvider.labelText,
-                  ),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: widget.socialButtonVariant == SocialButtonVariant.icon
+            ? Material(
+                shape: const CircleBorder(),
+                elevation: 2,
+                color: backgroundColor,
+                child: InkResponse(
+                  radius: 24,
+                  onTap: onAuthButtonPressed,
+                  child: iconWidget,
                 ),
-        );
-      },
-    );
+              )
+            : ElevatedButton.icon(
+                icon: iconWidget,
+                style: authButtonStyle,
+                onPressed: onAuthButtonPressed,
+                label: Text(
+                  localization.oAuthButtonLabels[socialProvider] ??
+                      socialProvider.labelText,
+                ),
+              ),
+      );
+    });
 
     return widget.socialButtonVariant == SocialButtonVariant.icon
-        ? Wrap(
-            alignment: WrapAlignment.spaceEvenly,
-            children: authButtons,
-          )
+        ? Wrap(alignment: WrapAlignment.spaceEvenly, children: authButtons)
         : Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: authButtons,

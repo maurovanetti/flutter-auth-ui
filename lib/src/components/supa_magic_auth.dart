@@ -22,12 +22,22 @@ class SupaMagicAuth extends StatefulWidget {
   /// Localization for the form
   final SupaMagicAuthLocalization localization;
 
+  /// Whether pressing Enter on the on-screen keyboard should automatically
+  /// submit the form.
+  ///
+  /// When set to `false`, the user must explicitly click the submit button
+  /// to proceed with the authentication process.
+  ///
+  /// Defaults to `true` for backward compatibility.
+  final bool enableAutomaticFormSubmission;
+
   const SupaMagicAuth({
     super.key,
     this.redirectUrl,
     required this.onSuccess,
     this.onError,
     this.localization = const SupaMagicAuthLocalization(),
+    this.enableAutomaticFormSubmission = true,
   });
 
   @override
@@ -60,6 +70,45 @@ class _SupaMagicAuthState extends State<SupaMagicAuth> {
     super.dispose();
   }
 
+  Future<void> _signInWithMagicLink() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await supabase.auth.signInWithOtp(
+        email: _email.text,
+        emailRedirectTo: widget.redirectUrl,
+      );
+      if (!mounted) return;
+      if (context.mounted) {
+        context.showSnackBar(widget.localization.checkYourEmail);
+      }
+    } on AuthException catch (error) {
+      if (widget.onError != null) {
+        widget.onError?.call(error);
+      } else if (context.mounted) {
+        context.showErrorSnackBar(error.message);
+      }
+    } catch (error) {
+      if (widget.onError != null) {
+        widget.onError?.call(error);
+      } else if (context.mounted) {
+        context.showErrorSnackBar(
+          '${widget.localization.unexpectedError}: $error',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final localization = widget.localization;
@@ -84,9 +133,15 @@ class _SupaMagicAuthState extends State<SupaMagicAuth> {
               label: Text(localization.enterEmail),
             ),
             controller: _email,
+            onFieldSubmitted: (_) async {
+              if (widget.enableAutomaticFormSubmission) {
+                await _signInWithMagicLink();
+              }
+            },
           ),
           spacer(16),
           ElevatedButton(
+            onPressed: _signInWithMagicLink,
             child: (_isLoading)
                 ? SizedBox(
                     height: 16,
@@ -100,39 +155,6 @@ class _SupaMagicAuthState extends State<SupaMagicAuth> {
                     localization.continueWithMagicLink,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-            onPressed: () async {
-              if (!_formKey.currentState!.validate()) {
-                return;
-              }
-              setState(() {
-                _isLoading = true;
-              });
-              try {
-                await supabase.auth.signInWithOtp(
-                  email: _email.text,
-                  emailRedirectTo: widget.redirectUrl,
-                );
-                if (context.mounted) {
-                  context.showSnackBar(localization.checkYourEmail);
-                }
-              } on AuthException catch (error) {
-                if (widget.onError == null && context.mounted) {
-                  context.showErrorSnackBar(error.message);
-                } else {
-                  widget.onError?.call(error);
-                }
-              } catch (error) {
-                if (widget.onError == null && context.mounted) {
-                  context.showErrorSnackBar(
-                      '${localization.unexpectedError}: $error');
-                } else {
-                  widget.onError?.call(error);
-                }
-              }
-              setState(() {
-                _isLoading = false;
-              });
-            },
           ),
           spacer(10),
         ],
