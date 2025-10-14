@@ -133,3 +133,53 @@ SupaSocialsAuth(
 
 This library uses bare Flutter components so that you can control the appearance of the components using your own theme.
 See theme example in example/lib/sign_in.dart
+
+## Controlling Form Submission Behavior
+
+All auth components (`SupaEmailAuth`, `SupaPhoneAuth`, `SupaMagicAuth`, and `SupaResetPassword`) support the `enableAutomaticFormSubmission` parameter to control whether pressing Enter/Done on the on-screen keyboard automatically submits the form.
+
+By default, this is set to `true` for backward compatibility, which means pressing Enter will submit the form. If you want users to be forced to explicitly tap the submit button, set this to `false`:
+
+```dart
+SupaEmailAuth(
+  redirectTo: kIsWeb ? null : 'io.mydomain.myapp://callback',
+  enableAutomaticFormSubmission: false, // Disable auto-submit on Enter
+  onSignInComplete: (response) {
+    // do something, for example: navigate('home');
+  },
+  onSignUpComplete: (response) {
+    // do something, for example: navigate("wait_for_email");
+  },
+),
+```
+
+This applies to all auth components:
+
+```dart
+// Phone Auth
+SupaPhoneAuth(
+  authAction: SupaAuthAction.signIn,
+  enableAutomaticFormSubmission: false,
+  onSuccess: (response) {
+    // handle success
+  },
+),
+
+// Magic Link Auth
+SupaMagicAuth(
+  redirectUrl: kIsWeb ? null : 'io.supabase.flutter://reset-callback/',
+  enableAutomaticFormSubmission: false,
+  onSuccess: (Session response) {
+    // handle success
+  },
+),
+
+// Reset Password
+SupaResetPassword(
+  accessToken: supabase.auth.currentSession?.accessToken,
+  enableAutomaticFormSubmission: false,
+  onSuccess: (UserResponse response) {
+    // handle success
+  },
+),
+```

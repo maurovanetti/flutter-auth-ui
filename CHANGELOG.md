@@ -1,3 +1,7 @@
+## Unreleased
+
+- feat: Add `enableAutomaticFormSubmission` flag to prevent automatic form submission when pressing Enter on on-screen keyboard in all auth components (SupaEmailAuth, SupaPhoneAuth, SupaMagicAuth, SupaResetPassword)
+
 ## 0.5.5
 
 - feat: Add Confirm Password Field to SupaEmailAuth Component for Sign-Up Process [#129](https://github.com/supabase-community/flutter-auth-ui/pull/129)
