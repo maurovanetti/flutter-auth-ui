@@ -22,12 +22,22 @@ class SupaMagicAuth extends StatefulWidget {
   /// Localization for the form
   final SupaMagicAuthLocalization localization;
 
+  /// Whether pressing Enter on the on-screen keyboard should automatically
+  /// submit the form.
+  ///
+  /// When set to `false`, the user must explicitly click the submit button
+  /// to proceed with the authentication process.
+  ///
+  /// Defaults to `true` for backward compatibility.
+  final bool enableAutomaticFormSubmission;
+
   const SupaMagicAuth({
     super.key,
     this.redirectUrl,
     required this.onSuccess,
     this.onError,
     this.localization = const SupaMagicAuthLocalization(),
+    this.enableAutomaticFormSubmission = true,
   });
 
   @override
@@ -84,6 +94,41 @@ class _SupaMagicAuthState extends State<SupaMagicAuth> {
               label: Text(localization.enterEmail),
             ),
             controller: _email,
+            onFieldSubmitted: (_) async {
+              if (widget.enableAutomaticFormSubmission) {
+                if (!_formKey.currentState!.validate()) {
+                  return;
+                }
+                setState(() {
+                  _isLoading = true;
+                });
+                try {
+                  await supabase.auth.signInWithOtp(
+                    email: _email.text,
+                    emailRedirectTo: widget.redirectUrl,
+                  );
+                  if (context.mounted) {
+                    context.showSnackBar(localization.checkYourEmail);
+                  }
+                } on AuthException catch (error) {
+                  if (widget.onError == null && context.mounted) {
+                    context.showErrorSnackBar(error.message);
+                  } else {
+                    widget.onError?.call(error);
+                  }
+                } catch (error) {
+                  if (widget.onError == null && context.mounted) {
+                    context.showErrorSnackBar(
+                        '${localization.unexpectedError}: $error');
+                  } else {
+                    widget.onError?.call(error);
+                  }
+                }
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            },
           ),
           spacer(16),
           ElevatedButton(

@@ -226,6 +226,15 @@ class SupaEmailAuth extends StatefulWidget {
   /// Pre-filled password for the form
   final String? prefilledPassword;
 
+  /// Whether pressing Enter on the on-screen keyboard should automatically
+  /// submit the form.
+  ///
+  /// When set to `false`, the user must explicitly click the submit button
+  /// to proceed with the authentication process.
+  ///
+  /// Defaults to `true` for backward compatibility.
+  final bool enableAutomaticFormSubmission;
+
   /// {@macro supa_email_auth}
   const SupaEmailAuth({
     super.key,
@@ -248,6 +257,7 @@ class SupaEmailAuth extends StatefulWidget {
     this.showConfirmPasswordField = false,
     this.prefilledEmail,
     this.prefilledPassword,
+    this.enableAutomaticFormSubmission = true,
   });
 
   @override
@@ -331,7 +341,8 @@ class _SupaEmailAuthState extends State<SupaEmailAuth> {
               ),
               controller: _emailController,
               onFieldSubmitted: (_) {
-                if (_isRecoveringPassword) {
+                if (_isRecoveringPassword &&
+                    widget.enableAutomaticFormSubmission) {
                   _passwordRecovery();
                 }
               },
@@ -360,7 +371,8 @@ class _SupaEmailAuthState extends State<SupaEmailAuth> {
                 obscureText: true,
                 controller: _passwordController,
                 onFieldSubmitted: (_) {
-                  if (widget.metadataFields == null || _isSigningIn) {
+                  if ((widget.metadataFields == null || _isSigningIn) &&
+                      widget.enableAutomaticFormSubmission) {
                     _signInSignUp();
                   }
                 },
@@ -463,7 +475,7 @@ class _SupaEmailAuthState extends State<SupaEmailAuth> {
                                 if (metadataField !=
                                     widget.metadataFields!.last) {
                                   FocusScope.of(context).nextFocus();
-                                } else {
+                                } else if (widget.enableAutomaticFormSubmission) {
                                   _signInSignUp();
                                 }
                               },
