@@ -119,11 +119,11 @@ class BooleanMetaDataField extends MetaDataField {
     this.isRequired = false,
     this.checkboxPosition = ListTileControlAffinity.platform,
     required super.key,
-  }) : assert(
-         label != null || richLabelSpans != null,
-         'Either label or richLabelSpans must be provided',
-       ),
-       super(label: label ?? '');
+  })  : assert(
+          label != null || richLabelSpans != null,
+          'Either label or richLabelSpans must be provided',
+        ),
+        super(label: label ?? '');
 
   Widget getLabelWidget(BuildContext context) {
     // This matches the default style of [TextField], to match the other fields
@@ -358,8 +358,7 @@ class _SupaEmailAuthState extends State<SupaEmailAuth> {
                 textInputAction: widget.metadataFields != null && !_isSigningIn
                     ? TextInputAction.next
                     : TextInputAction.done,
-                validator:
-                    widget.passwordValidator ??
+                validator: widget.passwordValidator ??
                     (value) {
                       if (value == null || value.isEmpty || value.length < 6) {
                         return localization.passwordLengthError;
@@ -429,9 +428,8 @@ class _SupaEmailAuthState extends State<SupaEmailAuth> {
                                             as bool,
                                     onChanged: (bool? value) {
                                       setState(() {
-                                        _metadataControllers[metadataField
-                                                .key] =
-                                            value ?? false;
+                                        _metadataControllers[
+                                            metadataField.key] = value ?? false;
                                       });
                                       field.didChange(value);
                                     },
@@ -453,8 +451,8 @@ class _SupaEmailAuthState extends State<SupaEmailAuth> {
                                         field.errorText!,
                                         style: theme.textTheme.labelSmall
                                             ?.copyWith(
-                                              color: theme.colorScheme.error,
-                                            ),
+                                          color: theme.colorScheme.error,
+                                        ),
                                       ),
                                     ),
                                 ],
@@ -465,13 +463,12 @@ class _SupaEmailAuthState extends State<SupaEmailAuth> {
                           // Otherwise render a normal TextFormField matching
                           // the style of the other fields in the form.
                           TextFormField(
-                            controller:
-                                _metadataControllers[metadataField.key]
-                                    as TextEditingController,
+                            controller: _metadataControllers[metadataField.key]
+                                as TextEditingController,
                             textInputAction:
                                 widget.metadataFields!.last == metadataField
-                                ? TextInputAction.done
-                                : TextInputAction.next,
+                                    ? TextInputAction.done
+                                    : TextInputAction.next,
                             decoration: InputDecoration(
                               label: Text(metadataField.label),
                               prefixIcon: metadataField.prefixIcon,
