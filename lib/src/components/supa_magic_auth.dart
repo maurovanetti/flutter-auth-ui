@@ -70,6 +70,45 @@ class _SupaMagicAuthState extends State<SupaMagicAuth> {
     super.dispose();
   }
 
+  Future<void> _signInWithMagicLink() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await supabase.auth.signInWithOtp(
+        email: _email.text,
+        emailRedirectTo: widget.redirectUrl,
+      );
+      if (!mounted) return;
+      if (context.mounted) {
+        context.showSnackBar(widget.localization.checkYourEmail);
+      }
+    } on AuthException catch (error) {
+      if (widget.onError != null) {
+        widget.onError?.call(error);
+      } else if (context.mounted) {
+        context.showErrorSnackBar(error.message);
+      }
+    } catch (error) {
+      if (widget.onError != null) {
+        widget.onError?.call(error);
+      } else if (context.mounted) {
+        context.showErrorSnackBar(
+          '${widget.localization.unexpectedError}: $error',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final localization = widget.localization;
@@ -96,43 +135,13 @@ class _SupaMagicAuthState extends State<SupaMagicAuth> {
             controller: _email,
             onFieldSubmitted: (_) async {
               if (widget.enableAutomaticFormSubmission) {
-                if (!_formKey.currentState!.validate()) {
-                  return;
-                }
-                setState(() {
-                  _isLoading = true;
-                });
-                try {
-                  await supabase.auth.signInWithOtp(
-                    email: _email.text,
-                    emailRedirectTo: widget.redirectUrl,
-                  );
-                  if (context.mounted) {
-                    context.showSnackBar(localization.checkYourEmail);
-                  }
-                } on AuthException catch (error) {
-                  if (widget.onError == null && context.mounted) {
-                    context.showErrorSnackBar(error.message);
-                  } else {
-                    widget.onError?.call(error);
-                  }
-                } catch (error) {
-                  if (widget.onError == null && context.mounted) {
-                    context.showErrorSnackBar(
-                      '${localization.unexpectedError}: $error',
-                    );
-                  } else {
-                    widget.onError?.call(error);
-                  }
-                }
-                setState(() {
-                  _isLoading = false;
-                });
+                await _signInWithMagicLink();
               }
             },
           ),
           spacer(16),
           ElevatedButton(
+            onPressed: _signInWithMagicLink,
             child: (_isLoading)
                 ? SizedBox(
                     height: 16,
@@ -146,40 +155,6 @@ class _SupaMagicAuthState extends State<SupaMagicAuth> {
                     localization.continueWithMagicLink,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-            onPressed: () async {
-              if (!_formKey.currentState!.validate()) {
-                return;
-              }
-              setState(() {
-                _isLoading = true;
-              });
-              try {
-                await supabase.auth.signInWithOtp(
-                  email: _email.text,
-                  emailRedirectTo: widget.redirectUrl,
-                );
-                if (context.mounted) {
-                  context.showSnackBar(localization.checkYourEmail);
-                }
-              } on AuthException catch (error) {
-                if (widget.onError == null && context.mounted) {
-                  context.showErrorSnackBar(error.message);
-                } else {
-                  widget.onError?.call(error);
-                }
-              } catch (error) {
-                if (widget.onError == null && context.mounted) {
-                  context.showErrorSnackBar(
-                    '${localization.unexpectedError}: $error',
-                  );
-                } else {
-                  widget.onError?.call(error);
-                }
-              }
-              setState(() {
-                _isLoading = false;
-              });
-            },
           ),
           spacer(10),
         ],

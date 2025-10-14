@@ -49,6 +49,37 @@ class _SupaResetPasswordState extends State<SupaResetPassword> {
     super.dispose();
   }
 
+  Future<void> _updatePassword() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    final localization = widget.localization;
+    try {
+      final response = await supabase.auth.updateUser(
+        UserAttributes(password: _password.text),
+      );
+      widget.onSuccess.call(response);
+      if (!mounted) return;
+      if (context.mounted) {
+        context.showSnackBar(localization.passwordResetSent);
+      }
+    } on AuthException catch (error) {
+      if (widget.onError != null) {
+        widget.onError?.call(error);
+      } else if (context.mounted) {
+        context.showErrorSnackBar(error.message);
+      }
+    } catch (error) {
+      if (widget.onError != null) {
+        widget.onError?.call(error);
+      } else if (context.mounted) {
+        context.showErrorSnackBar(
+          '${localization.passwordLengthError}: $error',
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final localization = widget.localization;
@@ -72,69 +103,17 @@ class _SupaResetPasswordState extends State<SupaResetPassword> {
             controller: _password,
             onFieldSubmitted: (_) async {
               if (widget.enableAutomaticFormSubmission) {
-                if (!_formKey.currentState!.validate()) {
-                  return;
-                }
-                try {
-                  final response = await supabase.auth.updateUser(
-                    UserAttributes(password: _password.text),
-                  );
-                  widget.onSuccess.call(response);
-                  // FIX use_build_context_synchronously
-                  if (!context.mounted) return;
-                  context.showSnackBar(localization.passwordResetSent);
-                } on AuthException catch (error) {
-                  if (widget.onError == null && context.mounted) {
-                    context.showErrorSnackBar(error.message);
-                  } else {
-                    widget.onError?.call(error);
-                  }
-                } catch (error) {
-                  if (widget.onError == null && context.mounted) {
-                    context.showErrorSnackBar(
-                      '${localization.passwordLengthError}: $error',
-                    );
-                  } else {
-                    widget.onError?.call(error);
-                  }
-                }
+                await _updatePassword();
               }
             },
           ),
           spacer(16),
           ElevatedButton(
+            onPressed: _updatePassword,
             child: Text(
               localization.updatePassword,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            onPressed: () async {
-              if (!_formKey.currentState!.validate()) {
-                return;
-              }
-              try {
-                final response = await supabase.auth.updateUser(
-                  UserAttributes(password: _password.text),
-                );
-                widget.onSuccess.call(response);
-                // FIX use_build_context_synchronously
-                if (!context.mounted) return;
-                context.showSnackBar(localization.passwordResetSent);
-              } on AuthException catch (error) {
-                if (widget.onError == null && context.mounted) {
-                  context.showErrorSnackBar(error.message);
-                } else {
-                  widget.onError?.call(error);
-                }
-              } catch (error) {
-                if (widget.onError == null && context.mounted) {
-                  context.showErrorSnackBar(
-                    '${localization.passwordLengthError}: $error',
-                  );
-                } else {
-                  widget.onError?.call(error);
-                }
-              }
-            },
           ),
           spacer(10),
         ],
