@@ -77,9 +77,7 @@ class _SupaResetPasswordState extends State<SupaResetPassword> {
                 }
                 try {
                   final response = await supabase.auth.updateUser(
-                    UserAttributes(
-                      password: _password.text,
-                    ),
+                    UserAttributes(password: _password.text),
                   );
                   widget.onSuccess.call(response);
                   // FIX use_build_context_synchronously
@@ -94,7 +92,8 @@ class _SupaResetPasswordState extends State<SupaResetPassword> {
                 } catch (error) {
                   if (widget.onError == null && context.mounted) {
                     context.showErrorSnackBar(
-                        '${localization.passwordLengthError}: $error');
+                      '${localization.passwordLengthError}: $error',
+                    );
                   } else {
                     widget.onError?.call(error);
                   }
@@ -114,9 +113,7 @@ class _SupaResetPasswordState extends State<SupaResetPassword> {
               }
               try {
                 final response = await supabase.auth.updateUser(
-                  UserAttributes(
-                    password: _password.text,
-                  ),
+                  UserAttributes(password: _password.text),
                 );
                 widget.onSuccess.call(response);
                 // FIX use_build_context_synchronously
@@ -131,7 +128,8 @@ class _SupaResetPasswordState extends State<SupaResetPassword> {
               } catch (error) {
                 if (widget.onError == null && context.mounted) {
                   context.showErrorSnackBar(
-                      '${localization.passwordLengthError}: $error');
+                    '${localization.passwordLengthError}: $error',
+                  );
                 } else {
                   widget.onError?.call(error);
                 }

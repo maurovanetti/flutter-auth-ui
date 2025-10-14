@@ -139,7 +139,8 @@ class _SupaPhoneAuthState extends State<SupaPhoneAuth> {
                   } catch (error) {
                     if (widget.onError == null && context.mounted) {
                       context.showErrorSnackBar(
-                          '${localization.unexpectedError}: $error');
+                        '${localization.unexpectedError}: $error',
+                      );
                     } else {
                       widget.onError?.call(error);
                     }
@@ -196,7 +197,8 @@ class _SupaPhoneAuthState extends State<SupaPhoneAuth> {
                 } catch (error) {
                   if (widget.onError == null && context.mounted) {
                     context.showErrorSnackBar(
-                        '${localization.unexpectedError}: $error');
+                      '${localization.unexpectedError}: $error',
+                    );
                   } else {
                     widget.onError?.call(error);
                   }

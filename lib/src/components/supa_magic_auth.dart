@@ -54,13 +54,13 @@ class _SupaMagicAuthState extends State<SupaMagicAuth> {
   @override
   void initState() {
     super.initState();
-    _gotrueSubscription =
-        Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      final session = data.session;
-      if (session != null && mounted) {
-        widget.onSuccess(session);
-      }
-    });
+    _gotrueSubscription = Supabase.instance.client.auth.onAuthStateChange
+        .listen((data) {
+          final session = data.session;
+          if (session != null && mounted) {
+            widget.onSuccess(session);
+          }
+        });
   }
 
   @override
@@ -119,7 +119,8 @@ class _SupaMagicAuthState extends State<SupaMagicAuth> {
                 } catch (error) {
                   if (widget.onError == null && context.mounted) {
                     context.showErrorSnackBar(
-                        '${localization.unexpectedError}: $error');
+                      '${localization.unexpectedError}: $error',
+                    );
                   } else {
                     widget.onError?.call(error);
                   }
@@ -169,7 +170,8 @@ class _SupaMagicAuthState extends State<SupaMagicAuth> {
               } catch (error) {
                 if (widget.onError == null && context.mounted) {
                   context.showErrorSnackBar(
-                      '${localization.unexpectedError}: $error');
+                    '${localization.unexpectedError}: $error',
+                  );
                 } else {
                   widget.onError?.call(error);
                 }

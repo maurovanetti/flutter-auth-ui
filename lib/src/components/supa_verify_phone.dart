@@ -90,7 +90,8 @@ class _SupaVerifyPhoneState extends State<SupaVerifyPhone> {
               } catch (error) {
                 if (widget.onError == null && context.mounted) {
                   context.showErrorSnackBar(
-                      '${localization.unexpectedErrorOccurred}: $error');
+                    '${localization.unexpectedErrorOccurred}: $error',
+                  );
                 } else {
                   widget.onError?.call(error);
                 }
